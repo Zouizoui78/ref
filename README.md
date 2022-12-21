@@ -1,3 +1,3 @@
 # ref
 
-Various examples to server as a reference.
+Various examples for reference.
