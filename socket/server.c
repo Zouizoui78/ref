@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
         error("Failed to bind socket");
     }
 
-    // Create socket to listen for incoming connections
+    // Listen for incoming connections
     // 3 = maximum number of pending connections
     if (listen(server_fd, 3)) {
         error("Failed to set socket to listen");
@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
 
     puts("Waiting for connection...");
 
+    // Accept connection
     client_fd = accept(
         server_fd,
         (struct sockaddr *)&socket_addr, // Client addr goes here
