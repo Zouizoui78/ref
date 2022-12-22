@@ -19,7 +19,7 @@ struct pollfd server_fd;
 struct pollfd clients_fds[NCLIENTS];
 
 struct client {
-    char name[10];
+    char name[100];
     char ip[INET_ADDRSTRLEN];
     int fd;
 };
@@ -28,9 +28,8 @@ struct client clients[NCLIENTS];
 
 void quit(int code) {
     for (int i = 1 ; i < NCLIENTS ; i++) {
-        close(clients_fds->fd);
+        close(clients_fds[i].fd);
     }
-    shutdown(server_fd.fd, SHUT_RDWR);
     close(server_fd.fd);
     exit(code);
 }
@@ -136,7 +135,6 @@ int broadcast_message(struct client sender, char *msg) {
     int count = 0;
     for (int i = 0 ; i < NCLIENTS ; i++) {
         if (clients[i].fd && clients[i].fd != sender.fd) {
-            printf("Broadcasting new message to fd %d\n", i);
             write(clients[i].fd, msg, strlen(msg));
             count++;
         }
@@ -206,6 +204,10 @@ int main(int argc, char **argv) {
         SOCK_STREAM, // TCP socket
         0 // Use default protocol
     );
+
+    if (setsockopt(server_fd.fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int))) {
+        error("Failed to set SO_REUSEADDR socket option");
+    }
 
     server_fd.events = POLLIN;
     if (server_fd.fd == -1) {
