@@ -47,7 +47,7 @@ void signal_handler() {
 int get_new_client_index() {
     int index = -1;
     for (int i = 0 ; i < NCLIENTS ; i++) {
-        if (clients_fds[i].fd == 0) {
+        if (clients_fds[i].fd == -1) {
             index = i;
             break;
         }
@@ -81,7 +81,6 @@ int new_client() {
     );
 
     if (clients_fds[index].fd == -1) {
-        clients_fds[index].fd = 0;
         return -1;
     }
 
@@ -92,8 +91,8 @@ int new_client() {
     if (!inet_ntop(AF_INET, &socket_addr.sin_addr.s_addr, clients[index].ip, INET_ADDRSTRLEN)) {
         puts("Failed to convert client address to string, disconnecting it");
         close(clients_fds[index].fd);
-        clients_fds[index].fd = 0;
-        clients[index].fd = 0;
+        clients_fds[index].fd = -1;
+        clients[index].fd = -1;
         return -1;
     }
     else {
@@ -106,8 +105,8 @@ int new_client() {
 void remove_client(int index) {
     printf("Connection closed by %s\n", clients[index].ip);
     close(clients_fds[index].fd);
-    clients_fds[index].fd = 0;
-    clients[index].fd = 0;
+    clients_fds[index].fd = -1;
+    clients[index].fd = -1;
     print_clients_fd();
 }
 
@@ -195,7 +194,7 @@ int main(int argc, char **argv) {
     printf("Port = %d\n", port);
 
     for (int i = 0 ; i < NCLIENTS ; i++) {
-        clients_fds[i].fd = 0;
+        clients_fds[i].fd = -1;
         clients_fds[i].events = POLLIN;
     }
 
@@ -206,14 +205,15 @@ int main(int argc, char **argv) {
         0 // Use default protocol
     );
 
+    if (server_fd.fd == -1) {
+        error("Failed to create socket");
+    }
+
     if (setsockopt(server_fd.fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int))) {
         error("Failed to set SO_REUSEADDR socket option");
     }
 
     server_fd.events = POLLIN;
-    if (server_fd.fd == -1) {
-        error("Failed to create socket");
-    }
 
     // Create ip address used by socket
     struct sockaddr_in socket_addr;
