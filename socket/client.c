@@ -12,10 +12,14 @@
 // poll includes
 #include <poll.h>
 
-int socket_fd;
+struct pollfd socket_fd, stdin_poll;
+
+void usage() {
+    puts("usage : client <username> [<server address> <server port>]");
+}
 
 void quit(int code) {
-    close(socket_fd);
+    close(socket_fd.fd);
     exit(code);
 }
 
@@ -44,21 +48,26 @@ int main(int argc , char **argv) {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
+    char name[100];
     char server_ip[20] = "127.0.0.1";
     uint16_t port = 3000;
 
-    if (argc != 1) {
-        if (argc != 3) {
-            puts("usage : client <server address> <server port>");
+    if (argc < 2) {
+        usage();
+        quit(0);
+    }
+    strcpy(name, argv[1]);
+
+    if (argc != 2) {
+        if (argc != 4) {
+            usage();
             quit(0);
         }
-        strcpy(server_ip, argv[1]);
-        port = strtoul(argv[2], NULL, 10);
+        strcpy(server_ip, argv[2]);
+        port = strtoul(argv[3], NULL, 10);
     }
 
     printf("server = %s:%d\n", server_ip, port);
-
-    struct pollfd socket_fd, stdin_poll;
 
     stdin_poll.fd = fileno(stdin);
     stdin_poll.events = POLLIN;
@@ -87,7 +96,11 @@ int main(int argc , char **argv) {
         error(error_msg);
     }
     
-    puts("Connected");
+    puts("Connected\n");
+
+    if (write(socket_fd.fd, name, strlen(name)) <= 0) {
+        error("Failed to send username to server\n");
+    }
 
     char buffer[1024];
     memset(buffer, 0, 1024);
@@ -101,7 +114,8 @@ int main(int argc , char **argv) {
                 quit(0);
             }
             else if (read_size > 0) {
-                printf("\rReceived %d bytes from server : %s\n", read_size, buffer);
+                puts(buffer);
+                puts("");
             }
             memset(buffer, 0, 1024);
         }
@@ -120,8 +134,7 @@ int main(int argc , char **argv) {
                 puts("Send failed");
             }
             memset(buffer, 0, 1024);
-
-            printf("Sent %d bytes\n", sent_size);
+            puts("");
         }
     }
 

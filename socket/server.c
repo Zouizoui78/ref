@@ -26,9 +26,20 @@ struct client {
 
 struct client clients[NCLIENTS];
 
+void reset_client(int index) {
+    if (clients_fds[index].fd != -1) {
+        close(clients_fds[index].fd);
+    }
+    clients_fds[index].fd = -1;
+
+    clients[index].fd = -1;
+    memset(clients[index].name, 0, 100);
+    memset(clients[index].ip, 0, INET_ADDRSTRLEN);
+}
+
 void quit(int code) {
-    for (int i = 1 ; i < NCLIENTS ; i++) {
-        close(clients_fds[i].fd);
+    for (int i = 0 ; i < NCLIENTS ; i++) {
+        reset_client(i);
     }
     close(server_fd.fd);
     exit(code);
@@ -59,15 +70,6 @@ int print_clients_fd() {
     for (int i = 0 ; i < NCLIENTS ; i++) {
         printf("client %d fd = %d\n", i, clients_fds[i].fd);
     }
-}
-
-void reset_client(int index) {
-    close(clients_fds[index].fd);
-    clients_fds[index].fd = -1;
-
-    clients[index].fd = -1;
-    memset(clients[index].name, 0, 100);
-    memset(clients[index].ip, 0, INET_ADDRSTRLEN);
 }
 
 int new_client() {
@@ -123,17 +125,17 @@ int check_for_new_client() {
     return 0;
 }
 
-int broadcast_message(struct client sender, char *msg) {
+int broadcast_message(char *msg, struct client *dest_exclude) {
     int count = 0;
     for (int i = 0 ; i < NCLIENTS ; i++) {
-        if (!clients[i].fd || clients[i].fd == sender.fd) {
+        if (clients[i].fd == -1 || (dest_exclude && clients[i].fd == dest_exclude->fd)) {
             continue;
         }
 
         ssize_t sent_size = write(clients[i].fd, msg, strlen(msg));
         // msg should not be empty so we treat == 0 as an error
         if (sent_size <= 0) {
-            printf("Broadcast to %s failed\n", clients[i].ip);
+            printf("Broadcast to %s failed\n", clients[i].name);
         }
         else {
             count++;
@@ -146,14 +148,15 @@ int new_message(int new_messages) {
     printf("New message from %d fd\n", new_messages);
 
     int count = 0;
-    char buffer[1024] = "";
+    char recv_buffer[1024] = "";
+    char send_buffer[1024] = "";
     for (int i = 0 ; i < NCLIENTS && count < new_messages ; i++) {
         if (!(clients_fds[i].revents & POLLIN)) {
             continue;
         }
 
-        printf("Reading data from fd %d\n", i);
-        ssize_t read_size = read(clients_fds[i].fd, buffer, 1024);
+        printf("Reading data from fd %d (%s)\n", i, clients[i].name);
+        ssize_t read_size = read(clients_fds[i].fd, recv_buffer, 1024);
         if (read_size == -1) {
             char error_str[100];
             sprintf(error_str, "Failed to read data from client at %s", clients[i].ip);
@@ -162,19 +165,32 @@ int new_message(int new_messages) {
 
         // 0 means connection closed
         else if (read_size == 0) {
-            printf("Connection closed by %s\n", clients[i].ip);
+            printf("Connection closed by %s\n", clients[i].name);
+            sprintf(send_buffer, "%s left the chat", clients[i].name);
             reset_client(i);
+            broadcast_message(send_buffer, NULL);
         }
         else {
-            printf("Received %d bytes from index %d, ip %s : %s", read_size, i, clients[i].ip, buffer);
-            if (buffer[read_size - 1] != '\n') {
+            printf("Received %d bytes from fd %d (%s) : %s", read_size, i, clients[i].name, recv_buffer);
+            if (recv_buffer[read_size - 1] != '\n') {
                 puts("");
             }
-            int ret = broadcast_message(clients[i], buffer);
-            printf("Broadcasted message to %d clients\n", ret);
+
+            if (clients[i].name[0]) {
+                sprintf(send_buffer, "%s :\n%s", clients[i].name, recv_buffer);
+                int ret = broadcast_message(send_buffer, clients + i);
+                printf("Broadcasted message to %d clients\n", ret);
+            }
+            else {
+                strcpy(clients[i].name, recv_buffer);
+                printf("fd %d name = %s\n", i, clients[i].name);
+                sprintf(send_buffer, "%s joined the chat", clients[i].name);
+                broadcast_message(send_buffer, NULL);
+            }
         }
 
-        memset(buffer, 0, 1024);
+        memset(recv_buffer, 0, 1024);
+        memset(send_buffer, 0, 1024);
         count++;
     }
 }
