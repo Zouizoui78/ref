@@ -115,9 +115,9 @@ int main(int argc , char **argv) {
                 quit(0);
             }
 
-            ssize_t sent_size = send(socket_fd.fd, buffer, strlen(buffer), 0);
+            ssize_t sent_size = write(socket_fd.fd, buffer, strlen(buffer));
             if (sent_size < 0) {
-                error("Send failed");
+                puts("Send failed");
             }
             memset(buffer, 0, 1024);
 

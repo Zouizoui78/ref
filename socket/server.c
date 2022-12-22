@@ -47,16 +47,12 @@ void signal_handler() {
 int get_new_client_index() {
     int index = -1;
     for (int i = 0 ; i < NCLIENTS ; i++) {
-        if (clients_fds[i].fd != 0) {
-            continue;
+        if (clients_fds[i].fd == 0) {
+            index = i;
+            break;
         }
-        index = i;
-        break;
     }
-
-    if (index == -1) {
-        return -1;
-    }
+    return index;
 }
 
 int print_clients_fd() {
@@ -85,7 +81,8 @@ int new_client() {
     );
 
     if (clients_fds[index].fd == -1) {
-        goto error;
+        clients_fds[index].fd = 0;
+        return -1;
     }
 
     printf("New connection fd = %d\n", clients_fds[index].fd);
@@ -93,20 +90,17 @@ int new_client() {
 
     // Convert internet address (inet) from network (n) form to "presentation" (p) form -> inet_ntop
     if (!inet_ntop(AF_INET, &socket_addr.sin_addr.s_addr, clients[index].ip, INET_ADDRSTRLEN)) {
-        puts("Failed to convert client address to string");
-        goto error;
+        puts("Failed to convert client address to string, disconnecting it");
+        close(clients_fds[index].fd);
+        clients_fds[index].fd = 0;
+        clients[index].fd = 0;
+        return -1;
     }
     else {
         printf("New connection from %s\n", clients[index].ip);
         print_clients_fd();
         return 0;
     }
-
-    error:
-    close(clients_fds[index].fd);
-    clients_fds[index].fd = 0;
-    clients[index].fd = 0;
-    return -1;
 }
 
 void remove_client(int index) {
@@ -124,7 +118,8 @@ int check_for_new_client() {
         puts("Failed to poll server fd");
         return -1;
     }
-    else if (ret == 1 && server_fd.revents & POLLIN) {
+    
+    if (ret == 1 && server_fd.revents & POLLIN) {
         return 1;
     }
 
@@ -134,8 +129,16 @@ int check_for_new_client() {
 int broadcast_message(struct client sender, char *msg) {
     int count = 0;
     for (int i = 0 ; i < NCLIENTS ; i++) {
-        if (clients[i].fd && clients[i].fd != sender.fd) {
-            write(clients[i].fd, msg, strlen(msg));
+        if (!clients[i].fd || clients[i].fd == sender.fd) {
+            continue;
+        }
+
+        ssize_t sent_size = write(clients[i].fd, msg, strlen(msg));
+        // msg should not be empty so we treat == 0 as an error
+        if (sent_size <= 0) {
+            printf("Broadcast to %s failed\n", clients[i].ip);
+        }
+        else {
             count++;
         }
     }
@@ -146,17 +149,14 @@ int new_message(int new_messages) {
     printf("New message from %d fd\n", new_messages);
 
     int count = 0;
+    char buffer[1024] = "";
     for (int i = 0 ; i < NCLIENTS && count < new_messages ; i++) {
-        puts("in loop");
         if (!(clients_fds[i].revents & POLLIN)) {
             continue;
         }
 
         printf("Reading data from fd %d\n", i);
-
-        char buffer[1024] = "";
         ssize_t read_size = read(clients_fds[i].fd, buffer, 1024);
-
         if (read_size == -1) {
             char error_str[100];
             sprintf(error_str, "Failed to read data from client at %s", clients[i].ip);
@@ -177,6 +177,7 @@ int new_message(int new_messages) {
             printf("Broadcasted message to %d clients\n", ret);
         }
 
+        memset(buffer, 0, 1024);
         count++;
     }
 }
