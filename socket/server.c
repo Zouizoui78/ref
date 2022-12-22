@@ -61,6 +61,15 @@ int print_clients_fd() {
     }
 }
 
+void reset_client(int index) {
+    close(clients_fds[index].fd);
+    clients_fds[index].fd = -1;
+
+    clients[index].fd = -1;
+    memset(clients[index].name, 0, 100);
+    memset(clients[index].ip, 0, INET_ADDRSTRLEN);
+}
+
 int new_client() {
     int index = get_new_client_index();
     if (index == -1) {
@@ -90,24 +99,13 @@ int new_client() {
     // Convert internet address (inet) from network (n) form to "presentation" (p) form -> inet_ntop
     if (!inet_ntop(AF_INET, &socket_addr.sin_addr.s_addr, clients[index].ip, INET_ADDRSTRLEN)) {
         puts("Failed to convert client address to string, disconnecting it");
-        close(clients_fds[index].fd);
-        clients_fds[index].fd = -1;
-        clients[index].fd = -1;
+        reset_client(index);
         return -1;
     }
     else {
         printf("New connection from %s\n", clients[index].ip);
-        print_clients_fd();
         return 0;
     }
-}
-
-void remove_client(int index) {
-    printf("Connection closed by %s\n", clients[index].ip);
-    close(clients_fds[index].fd);
-    clients_fds[index].fd = -1;
-    clients[index].fd = -1;
-    print_clients_fd();
 }
 
 int check_for_new_client() {
@@ -164,8 +162,8 @@ int new_message(int new_messages) {
 
         // 0 means connection closed
         else if (read_size == 0) {
-            printf("Connection with client %s closed\n", clients[i].ip);
-            remove_client(i);
+            printf("Connection closed by %s\n", clients[i].ip);
+            reset_client(i);
         }
         else {
             printf("Received %d bytes from index %d, ip %s : %s", read_size, i, clients[i].ip, buffer);
@@ -194,7 +192,7 @@ int main(int argc, char **argv) {
     printf("Port = %d\n", port);
 
     for (int i = 0 ; i < NCLIENTS ; i++) {
-        clients_fds[i].fd = -1;
+        reset_client(i);
         clients_fds[i].events = POLLIN;
     }
 
