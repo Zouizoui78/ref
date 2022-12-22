@@ -9,6 +9,9 @@
 #include <sys/socket.h> // socket
 #include <arpa/inet.h> //socketaddr_in, inet_addr
 
+// poll includes
+#include <poll.h>
+
 int socket_fd;
 
 void quit(int code) {
@@ -17,7 +20,7 @@ void quit(int code) {
 }
 
 void error(char *msg) {
-    printf("%s : %s\n", msg, strerror(errno));
+    printf("%s : %s (%d)\n", msg, strerror(errno), errno);
     quit(1);
 }
 
@@ -54,15 +57,21 @@ int main(int argc , char **argv) {
     }
 
     printf("server = %s:%d\n", server_ip, port);
-    
+
+    struct pollfd socket_fd, stdin_poll;
+
+    stdin_poll.fd = fileno(stdin);
+    stdin_poll.events = POLLIN;
+
     // Create socket and get its file descriptor
-    socket_fd = socket(
+    socket_fd.fd = socket(
         AF_INET, // Internet socket
         SOCK_STREAM, // TCP socket
         0 // Use default protocol
     );
+    socket_fd.events = POLLIN;
 
-    if (socket_fd == -1) {
+    if (socket_fd.fd == -1) {
         error("Failed to create socket");
     }
 
@@ -72,7 +81,7 @@ int main(int argc , char **argv) {
     server_addr.sin_port = htons(port);
 
     //Connect to server
-    if (connect(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr))) {
+    if (connect(socket_fd.fd, (struct sockaddr *)&server_addr, sizeof(server_addr))) {
         char error_msg[50];
         sprintf(error_msg, "Failed to connect to %s:%d", server_ip, port);
         error(error_msg);
@@ -80,24 +89,40 @@ int main(int argc , char **argv) {
     
     puts("Connected");
 
-    char input[1000];
-    printf("> ");
+    char buffer[1024];
+    memset(buffer, 0, 1024);
 
     while (1) {
-        fgets(input, 1000, stdin);
-        input[strlen(input) - 1] = 0;
-
-        if (search_for_quit_command(input)) {
-            quit(0);
+        int ret = poll(&socket_fd, 1, 10);
+        if (ret == 1 && socket_fd.revents & POLLIN) {
+            ssize_t read_size = read(socket_fd.fd, buffer, 1024);
+            if (read_size == 0) {
+                puts("Connection closed by server");
+                quit(0);
+            }
+            else if (read_size > 0) {
+                printf("\rReceived %d bytes from server : %s\n", read_size, buffer);
+            }
+            memset(buffer, 0, 1024);
         }
 
-        ssize_t sent_size = send(socket_fd, input, strlen(input), 0);
-        if (sent_size < 0) {
-            error("Send failed");
-        }
+        ret = poll(&stdin_poll, 1, 10);
+        if (ret == 1 && stdin_poll.revents & POLLIN) {
+            fgets(buffer, 1024, stdin);
+            buffer[strlen(buffer) - 1] = 0;
 
-        printf("Sent %d bytes\n", sent_size);
-        printf("> ");
+            if (search_for_quit_command(buffer)) {
+                quit(0);
+            }
+
+            ssize_t sent_size = send(socket_fd.fd, buffer, strlen(buffer), 0);
+            if (sent_size < 0) {
+                error("Send failed");
+            }
+            memset(buffer, 0, 1024);
+
+            printf("Sent %d bytes\n", sent_size);
+        }
     }
 
     quit(0);
