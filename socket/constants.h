@@ -1,0 +1,6 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+#define MAX_MESSAGE_SIZE 1000
+
+#endif // CONSTANTS_H

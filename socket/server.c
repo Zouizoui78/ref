@@ -13,6 +13,8 @@
 // poll includes
 #include <poll.h>
 
+#include "constants.h"
+
 struct pollfd server_fd;
 
 #define NCLIENTS 10
@@ -66,7 +68,7 @@ int get_new_client_index() {
     return index;
 }
 
-int print_clients_fd() {
+void print_clients_fd() {
     for (int i = 0 ; i < NCLIENTS ; i++) {
         printf("client %d fd = %d\n", i, clients_fds[i].fd);
     }
@@ -144,23 +146,23 @@ int broadcast_message(char *msg, struct client *dest_exclude) {
     return count;
 }
 
-int new_message(int new_messages) {
+void new_message(int new_messages) {
     printf("New message from %d fd\n", new_messages);
 
     int count = 0;
-    char recv_buffer[1024] = "";
+    char recv_buffer[MAX_MESSAGE_SIZE] = "";
     char send_buffer[1024] = "";
     for (int i = 0 ; i < NCLIENTS && count < new_messages ; i++) {
         if (!(clients_fds[i].revents & POLLIN)) {
             continue;
         }
 
-        memset(recv_buffer, 0, 1024);
+        memset(recv_buffer, 0, MAX_MESSAGE_SIZE);
         memset(send_buffer, 0, 1024);
         count++;
 
         printf("Reading data from fd %d (%s)\n", i, clients[i].name);
-        ssize_t read_size = read(clients_fds[i].fd, recv_buffer, 1024);
+        ssize_t read_size = read(clients_fds[i].fd, recv_buffer, MAX_MESSAGE_SIZE);
         if (read_size == -1) {
             printf("Failed to read data from %s", clients[i].name);
             continue;
@@ -175,7 +177,7 @@ int new_message(int new_messages) {
             continue;
         }
 
-        printf("Received %d bytes from fd %d (%s) : %s", read_size, i, clients[i].name, recv_buffer);
+        printf("Received %ld bytes from fd %d (%s) : %s", read_size, i, clients[i].name, recv_buffer);
         if (recv_buffer[read_size - 1] != '\n') {
             puts("");
         }
@@ -246,8 +248,6 @@ int main(int argc, char **argv) {
     }
 
     puts("Waiting for connection...");
-
-    char buffer[1024] = "";
 
     while (1) {
         if (check_for_new_client() && new_client()) {

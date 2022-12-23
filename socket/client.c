@@ -12,6 +12,8 @@
 // poll includes
 #include <poll.h>
 
+#include "constants.h"
+
 struct pollfd socket_fd, stdin_poll;
 
 void usage() {
@@ -102,13 +104,12 @@ int main(int argc , char **argv) {
         error("Failed to send username to server\n");
     }
 
-    char buffer[1024];
-    memset(buffer, 0, 1024);
+    char buffer[MAX_MESSAGE_SIZE] = "";
 
     while (1) {
         int ret = poll(&socket_fd, 1, 10);
         if (ret == 1 && socket_fd.revents & POLLIN) {
-            ssize_t read_size = read(socket_fd.fd, buffer, 1024);
+            ssize_t read_size = read(socket_fd.fd, buffer, MAX_MESSAGE_SIZE);
             if (read_size == 0) {
                 puts("Connection closed by server");
                 quit(0);
@@ -117,12 +118,12 @@ int main(int argc , char **argv) {
                 puts(buffer);
                 puts("");
             }
-            memset(buffer, 0, 1024);
+            memset(buffer, 0, MAX_MESSAGE_SIZE);
         }
 
         ret = poll(&stdin_poll, 1, 10);
         if (ret == 1 && stdin_poll.revents & POLLIN) {
-            fgets(buffer, 1024, stdin);
+            fgets(buffer, MAX_MESSAGE_SIZE, stdin);
             buffer[strlen(buffer) - 1] = 0;
 
             if (search_for_quit_command(buffer)) {
@@ -133,7 +134,7 @@ int main(int argc , char **argv) {
             if (sent_size < 0) {
                 puts("Send failed");
             }
-            memset(buffer, 0, 1024);
+            memset(buffer, 0, MAX_MESSAGE_SIZE);
             puts("");
         }
     }
