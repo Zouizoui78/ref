@@ -155,12 +155,15 @@ int new_message(int new_messages) {
             continue;
         }
 
+        memset(recv_buffer, 0, 1024);
+        memset(send_buffer, 0, 1024);
+        count++;
+
         printf("Reading data from fd %d (%s)\n", i, clients[i].name);
         ssize_t read_size = read(clients_fds[i].fd, recv_buffer, 1024);
         if (read_size == -1) {
-            char error_str[100];
-            sprintf(error_str, "Failed to read data from client at %s", clients[i].ip);
-            error(error_str);
+            printf("Failed to read data from %s", clients[i].name);
+            continue;
         }
 
         // 0 means connection closed
@@ -169,29 +172,25 @@ int new_message(int new_messages) {
             sprintf(send_buffer, "%s left the chat", clients[i].name);
             reset_client(i);
             broadcast_message(send_buffer, NULL);
+            continue;
+        }
+
+        printf("Received %d bytes from fd %d (%s) : %s", read_size, i, clients[i].name, recv_buffer);
+        if (recv_buffer[read_size - 1] != '\n') {
+            puts("");
+        }
+
+        if (clients[i].name[0]) {
+            sprintf(send_buffer, "%s :\n%s", clients[i].name, recv_buffer);
+            int ret = broadcast_message(send_buffer, clients + i);
+            printf("Broadcasted message to %d clients\n", ret);
         }
         else {
-            printf("Received %d bytes from fd %d (%s) : %s", read_size, i, clients[i].name, recv_buffer);
-            if (recv_buffer[read_size - 1] != '\n') {
-                puts("");
-            }
-
-            if (clients[i].name[0]) {
-                sprintf(send_buffer, "%s :\n%s", clients[i].name, recv_buffer);
-                int ret = broadcast_message(send_buffer, clients + i);
-                printf("Broadcasted message to %d clients\n", ret);
-            }
-            else {
-                strcpy(clients[i].name, recv_buffer);
-                printf("fd %d name = %s\n", i, clients[i].name);
-                sprintf(send_buffer, "%s joined the chat", clients[i].name);
-                broadcast_message(send_buffer, NULL);
-            }
+            strcpy(clients[i].name, recv_buffer);
+            printf("fd %d name = %s\n", i, clients[i].name);
+            sprintf(send_buffer, "%s joined the chat", clients[i].name);
+            broadcast_message(send_buffer, NULL);
         }
-
-        memset(recv_buffer, 0, 1024);
-        memset(send_buffer, 0, 1024);
-        count++;
     }
 }
 
