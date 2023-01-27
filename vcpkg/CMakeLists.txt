@@ -17,21 +17,21 @@ endif (UNIX)
 add_compile_options($<$<CONFIG:Debug>:-DDEBUG>$<$<CONFIG:Release>:-DRELEASE>)
 
 macro(set_from_environment VARIABLE)
-	if (NOT DEFINED ${VARIABLE} AND DEFINED ENV{${VARIABLE}})
-		set(${VARIABLE} $ENV{${VARIABLE}})
-	endif ()
+    if (NOT DEFINED ${VARIABLE} AND DEFINED ENV{${VARIABLE}})
+        set(${VARIABLE} $ENV{${VARIABLE}})
+    endif ()
 endmacro()
 
 set_from_environment(VCPKG_ROOT)
 if (DEFINED VCPKG_ROOT)
-	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-	set(VCPKG_HOST_TRIPLET "x64-mingw-static" CACHE STRING "")
-	set(VCPKG_TARGET_TRIPLET "x64-mingw-static" CACHE STRING "")
+    set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+    set(VCPKG_HOST_TRIPLET "x64-mingw-static" CACHE STRING "")
+    set(VCPKG_TARGET_TRIPLET "x64-mingw-static" CACHE STRING "")
 else ()
-	message(
-		WARNING
-		"Variable VCPKG_ROOT is not set. Continuing without vcpkg."
-	)
+    message(
+        WARNING
+        "Variable VCPKG_ROOT is not set. Continuing without vcpkg."
+    )
 endif ()
 
 # --- Project ---
