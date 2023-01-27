@@ -23,7 +23,7 @@ During the process you should see vcpkg pulling dependencies and installing them
 
 Now run the program
 
-    ./build/Debug/vcpkg-test
+    ./build/vcpkg-test
 
 It works !
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(PROJECT vcpkc-test)
+set(PROJECT vcpkg-test)
 set(VERSION 0.1)
 set(PRJ_VER ${PROJECT}-${VERSION})
 
