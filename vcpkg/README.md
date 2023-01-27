@@ -23,7 +23,7 @@ During the process you should see vcpkg pulling dependencies and installing them
 
 Thanks to cmake and its vcpkg integration, it works thanks to a few variables.
 
-In `CMakeLists.txt` two variables are set :
+In `CMakeLists.txt` these variables are set :
 
     CMAKE_TOOLCHAIN_FILE # Point cmake to the vcpkg install
     VCPKG_HOST_TRIPLET   # Tell vcpkg which triplet to download dependencies for
