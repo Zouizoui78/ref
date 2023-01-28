@@ -11,5 +11,4 @@ int main() {
 
     SPDLOG_INFO("Hello world !");
     SPDLOG_DEBUG("Should show up in debug mode");
-    SPDLOG_INFO(std::string("VCPKG_ROOT = ") + std::getenv("VCPKG_ROOT"));
 }

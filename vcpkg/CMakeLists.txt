@@ -6,14 +6,6 @@ set(PRJ_VER ${PROJECT}-${VERSION})
 
 # --- Configuration ---
 
-# OS defines used inside code
-if (WIN32)
-    add_compile_options(-DWINDOWS)
-endif (WIN32)
-if (UNIX)
-    add_compile_options(-DLINUX)
-endif (UNIX)
-
 add_compile_options($<$<CONFIG:Debug>:-DDEBUG>$<$<CONFIG:Release>:-DRELEASE>)
 
 macro(set_from_environment VARIABLE)
@@ -25,8 +17,8 @@ endmacro()
 set_from_environment(VCPKG_ROOT)
 if (DEFINED VCPKG_ROOT)
     set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-    set(VCPKG_HOST_TRIPLET "x64-mingw-static" CACHE STRING "")
-    set(VCPKG_TARGET_TRIPLET "x64-mingw-static" CACHE STRING "")
+    set(VCPKG_HOST_TRIPLET "x64-windows-static-md" CACHE STRING "")
+    set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "")
 else ()
     message(
         WARNING
