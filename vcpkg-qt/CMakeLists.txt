@@ -32,10 +32,6 @@ set(
 
 add_executable(${PROJECT} ${SRC})
 
-if (WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_property(TARGET ${PROJECT} PROPERTY WIN32_EXECUTABLE true)
-endif()
-
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
@@ -45,7 +41,14 @@ target_link_libraries(
     ${PROJECT}
     PRIVATE spdlog::spdlog
     PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets
-    $<$<CONFIG:RelWithDebInfo>:Qt5::WinMain>
-    $<$<CONFIG:Release>:Qt5::WinMain>
-    $<$<CONFIG:MinSizeRel>:Qt5::WinMain>
 )
+
+if (WIN32)
+    if (CMAKE_BUILD_TYPE STREQUAL "Release")
+        set_property(TARGET ${PROJECT} PROPERTY WIN32_EXECUTABLE true)
+    endif()
+    target_link_libraries(
+        ${PROJECT}
+        PRIVATE $<$<CONFIG:Release>:Qt5::WinMain>
+    )
+endif()
