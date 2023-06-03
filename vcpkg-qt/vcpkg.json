@@ -1,0 +1,8 @@
+{
+    "name": "vcpkg-test",
+    "version": "0.0.1",
+    "dependencies": [
+        "spdlog",
+        "qt5-base"
+    ]
+}
