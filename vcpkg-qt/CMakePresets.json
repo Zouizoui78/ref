@@ -27,6 +27,22 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "debugwin",
+            "inherits": ["debug"],
+            "displayName": "DebugWin",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            }
+        },
+        {
+            "name": "releasewin",
+            "inherits": ["release"],
+            "displayName": "ReleaseWin",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            }
         }
     ]
 }
