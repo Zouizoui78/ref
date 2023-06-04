@@ -2,11 +2,7 @@
     "name": "vcpkg-qt",
     "version": "0.0.1",
     "dependencies": [
-        "spdlog",
-        {
-            "name": "qtbase",
-            "default-features": false,
-            "features": ["widgets"]
-        }
+        "qtbase",
+        "spdlog"
     ]
 }
