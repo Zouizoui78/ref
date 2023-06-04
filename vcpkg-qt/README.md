@@ -28,7 +28,7 @@ During the process you should see vcpkg pulling dependencies and installing them
 
 ### Install (Windows)
 
-On Windows an `install` target is defined to produce a ready to package directory at `dist/build/release`.
+On Windows an `install` target is defined to produce a ready to package directory at `dist/release`.
 Run the following command :
 
     cmake --install build/releasewin
