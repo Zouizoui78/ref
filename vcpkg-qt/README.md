@@ -13,7 +13,7 @@ Then set the following environment variable :
 
     VCPKG_ROOT=<path to vcpkg>
 
-This variable is used by the `vcpkg` toolchain.
+This variable is used to locate vcpkg in `CMakePresets.json`.
 
 ### Build
 
