@@ -32,23 +32,29 @@ set(
 
 add_executable(${PROJECT} ${SRC})
 
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
 target_link_libraries(
     ${PROJECT}
     PRIVATE spdlog::spdlog
-    PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets
+    PRIVATE Qt::Widgets
 )
 
 if (WIN32)
     if (CMAKE_BUILD_TYPE STREQUAL "Release")
         set_property(TARGET ${PROJECT} PROPERTY WIN32_EXECUTABLE true)
     endif()
-    target_link_libraries(
-        ${PROJECT}
-        PRIVATE $<$<CONFIG:Release>:Qt5::WinMain>
+
+    install(TARGETS ${PROJECT}
+        BUNDLE  DESTINATION .
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+
+    qt_generate_deploy_app_script(
+        TARGET ${PROJECT}
+        OUTPUT_SCRIPT deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+    )
+    install(SCRIPT ${deploy_script})
 endif()
