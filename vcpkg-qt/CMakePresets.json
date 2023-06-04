@@ -16,6 +16,7 @@
             "name": "basewin",
             "inherits": ["base"],
             "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "cl.exe",
                 "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
             }
         },
@@ -38,18 +39,12 @@
         {
             "name": "debugwin",
             "inherits": ["basewin", "debug"],
-            "displayName": "DebugWin",
-            "cacheVariables": {
-                "CMAKE_CXX_COMPILER": "cl.exe"
-            }
+            "displayName": "DebugWin"
         },
         {
             "name": "releasewin",
             "inherits": ["basewin", "release"],
-            "displayName": "ReleaseWin",
-            "cacheVariables": {
-                "CMAKE_CXX_COMPILER": "cl.exe"
-            }
+            "displayName": "ReleaseWin"
         }
     ]
 }
