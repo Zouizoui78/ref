@@ -13,18 +13,27 @@ Then set the following environment variable :
 
     VCPKG_ROOT=<path to vcpkg>
 
-This variable is used in `CMakeLists.txt` to know the location of vcpkg.
+This variable is used by the `vcpkg` toolchain.
 
-### Build and run the project
+### Build
 
 Now go to the project directory and build the example program :
 
-    cmake --preset=debug
-    cd build/debug
-    cmake --build .
+    cmake --preset=release
+    cmake --build build/release
 
-During the process you should see vcpkg pulling dependencies and installing them into the build directory (it will take a long time since it has to compile qt5-base).
+If on Windows append `win` to the preset name.
 
-Now run the program :
+During the process you should see vcpkg pulling dependencies and installing them into the build directory (it will take a long time on the first time since it has to compile Qt).
 
-    .\vcpkg-qt.exe
+### Install (Windows)
+
+On Windows an `install` target is defined to produce a ready to package directory at `dist/build/release`.
+Run the following command :
+
+    cmake --install build/releasewin
+
+After that the directory `dist/releasewin` should contain everything needed to run the program, which sits in the `bin` subdirectory.
+
+The Qt dependencies are pulled by `windeployqt` which is called thanks to `qt_generate_deploy_app_script` in `CMakeLists.txt`.
+Other non-Qt dependencies are pulled thanks to the `X_VCPKG_APPLOCAL_DEPS_INSTALL` variable defined in `CMakePresets.json`.
