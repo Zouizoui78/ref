@@ -15,7 +15,6 @@
         {
             "name": "debug",
             "inherits": ["base"],
-            "displayName": "Debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
@@ -23,7 +22,6 @@
         {
             "name": "release",
             "inherits": ["base"],
-            "displayName": "Release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
@@ -40,13 +38,11 @@
         },
         {
             "name": "debugwin",
-            "inherits": ["basewin", "debug"],
-            "displayName": "DebugWin"
+            "inherits": ["basewin", "debug"]
         },
         {
             "name": "releasewin",
             "inherits": ["basewin", "release"],
-            "displayName": "ReleaseWin",
             "cacheVariables": {
                 "CMAKE_WIN32_EXECUTABLE": true
             }
