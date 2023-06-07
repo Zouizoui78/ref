@@ -13,14 +13,6 @@
             }
         },
         {
-            "name": "basewin",
-            "inherits": ["base"],
-            "cacheVariables": {
-                "CMAKE_CXX_COMPILER": "cl.exe",
-                "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
-            }
-        },
-        {
             "name": "debug",
             "inherits": ["base"],
             "displayName": "Debug",
@@ -34,6 +26,15 @@
             "displayName": "Release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "basewin",
+            "hidden": true,
+            "inherits": ["base"],
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
             }
         },
         {
