@@ -40,21 +40,3 @@ target_link_libraries(
     PRIVATE spdlog::spdlog
     PRIVATE Qt::Widgets
 )
-
-if (WIN32)
-    if (CMAKE_BUILD_TYPE STREQUAL "Release")
-        set_property(TARGET ${PROJECT} PROPERTY WIN32_EXECUTABLE true)
-    endif()
-
-    install(TARGETS ${PROJECT}
-        BUNDLE  DESTINATION .
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
-
-    qt_generate_deploy_app_script(
-        TARGET ${PROJECT}
-        OUTPUT_SCRIPT deploy_script
-        NO_UNSUPPORTED_PLATFORM_ERROR
-    )
-    install(SCRIPT ${deploy_script})
-endif()

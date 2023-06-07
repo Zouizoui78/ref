@@ -5,12 +5,11 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dist/${command:cmake.activeConfigurePresetName}/bin/vcpkg-qt.exe",
+            "program": "${command:cmake.getLaunchTargetPath}",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/dist/${command:cmake.activeConfigurePresetName}",
-            "environment": [],
-            "console": "externalTerminal"
+            "cwd": "",
+            "environment": []
         }
     ]
 }
