@@ -46,7 +46,10 @@
         {
             "name": "releasewin",
             "inherits": ["basewin", "release"],
-            "displayName": "ReleaseWin"
+            "displayName": "ReleaseWin",
+            "cacheVariables": {
+                "CMAKE_WIN32_EXECUTABLE": true
+            }
         }
     ]
 }
