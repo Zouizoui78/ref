@@ -13,13 +13,15 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    virtual ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
+    void on_button_clicked();
+    void on_reset_button_clicked();
 
 private:
     std::unique_ptr<Ui::MainWindow> _ui;
+    uint32_t _counter = 0;
 };
 
 #endif // MAINWINDOW_HPP
