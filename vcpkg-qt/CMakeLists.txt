@@ -16,6 +16,14 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ui)
 
 add_compile_options($<$<CONFIG:Debug>:-DDEBUG>$<$<CONFIG:Release>:-DRELEASE>)
 
+if (WIN32)
+    add_compile_options(-DWINDOWS)
+endif (WIN32)
+
+if (UNIX)
+    add_compile_options(-DLINUX)
+endif (UNIX)
+
 # --- Project ---
 
 project(
